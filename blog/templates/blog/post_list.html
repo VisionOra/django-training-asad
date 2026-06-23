@@ -1,0 +1,38 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}All Posts{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+    <h1 style="font-size:28px;">📰 All Posts</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'post_create' %}" class="btn btn-primary">+ New Post</a>
+    {% endif %}
+</div>
+
+{% if posts %}
+    {% for post in posts %}
+    <div style="background:white; border-radius:8px; padding:25px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+        <h2 style="margin-bottom:8px;">
+            <a href="{% url 'post_detail' post.pk %}" style="text-decoration:none; color:#2c3e50;">
+                {{ post.title }}
+            </a>
+        </h2>
+        <small style="color:#888;">
+            By <strong>{{ post.author.username }}</strong>
+            {% if post.category %} in <em>{{ post.category }}</em>{% endif %}
+            &mdash; {{ post.created_at|date:"F j, Y" }}
+        </small>
+        <p style="margin-top:12px; color:#555;">{{ post.body|truncatewords:30 }}</p>
+        <a href="{% url 'post_detail' post.pk %}" class="btn btn-primary" style="margin-top:12px;">Read More</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <div style="text-align:center; padding:60px; background:white; border-radius:8px;">
+        <h3 style="color:#888;">No posts yet.</h3>
+        {% if user.is_authenticated %}
+            <a href="{% url 'post_create' %}" class="btn btn-primary" style="margin-top:15px;">Create First Post</a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

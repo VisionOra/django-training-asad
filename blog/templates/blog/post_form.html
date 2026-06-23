@@ -1,0 +1,27 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ action }} Post{% endblock %}
+
+{% block content %}
+<div style="background:white; border-radius:8px; padding:35px; box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+    <h1 style="margin-bottom:25px;">{{ action }} Post</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div style="margin-bottom:18px;">
+            <label style="display:block; margin-bottom:6px; font-weight:600;">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <small style="color:red;">{{ field.errors.as_text }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button type="submit" class="btn btn-primary">💾 {{ action }} Post</button>
+            <a href="{% url 'post_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
