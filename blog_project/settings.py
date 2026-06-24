@@ -25,8 +25,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # local app
-    'blog',
+    # local apps
+    'apps.blog',
+    'apps.accounts',
 
     # third-party apps
     'rest_framework',
@@ -111,10 +112,13 @@ LOGIN_URL = '/accounts/login/'
 
 
 # =========================
-# DRF + Swagger settings
+# DRF + Swagger + JWT settings
 # =========================
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 
 SPECTACULAR_SETTINGS = {
