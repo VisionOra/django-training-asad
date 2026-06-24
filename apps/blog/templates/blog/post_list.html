@@ -5,9 +5,6 @@
 {% block content %}
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
     <h1 style="font-size:28px;">📰 All Posts</h1>
-    {% if user.is_authenticated %}
-        <a href="{% url 'post_create' %}" class="btn btn-primary">+ New Post</a>
-    {% endif %}
 </div>
 
 {% if posts %}
@@ -30,9 +27,6 @@
 {% else %}
     <div style="text-align:center; padding:60px; background:white; border-radius:8px;">
         <h3 style="color:#888;">No posts yet.</h3>
-        {% if user.is_authenticated %}
-            <a href="{% url 'post_create' %}" class="btn btn-primary" style="margin-top:15px;">Create First Post</a>
-        {% endif %}
     </div>
 {% endif %}
 {% endblock %}
