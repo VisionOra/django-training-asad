@@ -1,4 +1,5 @@
 # django-training-asad
+
 # Django Blog Application
 
 A simple **Blog Application** built with **Django** and **Django REST Framework (DRF)**.
@@ -25,6 +26,7 @@ This project supports blog posts, categories, REST API endpoints, Swagger docume
 ### Authentication & Documentation
 
 * JWT authentication using **SimpleJWT**
+* Custom accounts API for **register, login, refresh, and profile**
 * Swagger/OpenAPI documentation using **drf-spectacular**
 * API testing directly from Swagger UI
 
@@ -46,17 +48,30 @@ This project supports blog posts, categories, REST API endpoints, Swagger docume
 
 ```bash
 Blog Application/
-│── blog/                     # Main blog app
-│   ├── migrations/
-│   ├── templates/blog/
-│   ├── admin.py
-│   ├── forms.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── urls.py
-│   └── views.py
+│── apps/
+│   ├── blog/                     # Blog app
+│   │   ├── migrations/
+│   │   ├── templates/blog/
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── forms.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   │
+│   └── accounts/                 # Accounts / JWT auth app
+│       ├── migrations/
+│       ├── admin.py
+│       ├── apps.py
+│       ├── models.py
+│       ├── serializers.py
+│       ├── tests.py
+│       ├── urls.py
+│       └── views.py
 │
-│── blog_project/             # Project settings and root urls
+│── blog_project/                 # Project settings and root urls
 │   ├── settings.py
 │   ├── urls.py
 │   └── ...
@@ -112,15 +127,11 @@ python -m venv venv
 venv\Scripts\activate
 ```
 
----
-
 ### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
-
----
 
 ### 4. Apply migrations
 
@@ -128,15 +139,11 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
----
-
 ### 5. Create a superuser
 
 ```bash
 python manage.py createsuperuser
 ```
-
----
 
 ### 6. Run the development server
 
@@ -166,16 +173,14 @@ http://127.0.0.1:8000/
 
 ## API Endpoints
 
-### Posts
+## Accounts
 
-* `GET /api/posts/` → List all posts
-* `POST /api/posts/` → Create a post (**JWT required**)
-* `GET /api/posts/<id>/` → Retrieve a single post
-* `PUT /api/posts/<id>/` → Update a post (**JWT required**)
-* `PATCH /api/posts/<id>/` → Partially update a post (**JWT required**)
-* `DELETE /api/posts/<id>/` → Delete a post (**JWT required**)
+* `POST /accounts/register/` → Register a new user
+* `POST /accounts/login/` → Login and get JWT access/refresh tokens
+* `POST /accounts/refresh/` → Get a new access token using refresh token
+* `GET /accounts/profile/` → Get logged-in user profile (**JWT required**)
 
-### Categories
+## Categories
 
 * `GET /api/categories/` → List all categories
 * `POST /api/categories/` → Create a category (**JWT required**)
@@ -184,21 +189,14 @@ http://127.0.0.1:8000/
 * `PATCH /api/categories/<id>/` → Partially update a category (**JWT required**)
 * `DELETE /api/categories/<id>/` → Delete a category (**JWT required**)
 
----
+## Posts
 
-## JWT Authentication Endpoints
-
-* **Obtain token**
-
-  ```bash
-  POST /api/token/
-  ```
-
-* **Refresh token**
-
-  ```bash
-  POST /api/token/refresh/
-  ```
+* `GET /api/posts/` → List all posts
+* `POST /api/posts/` → Create a post (**JWT required**)
+* `GET /api/posts/<id>/` → Retrieve a single post
+* `PUT /api/posts/<id>/` → Update a post (**JWT required**)
+* `PATCH /api/posts/<id>/` → Partially update a post (**JWT required**)
+* `DELETE /api/posts/<id>/` → Delete a post (**JWT required**)
 
 ---
 
@@ -207,7 +205,7 @@ http://127.0.0.1:8000/
 Swagger UI is available at:
 
 ```bash
-http://127.0.0.1:8000/api/docs/
+http://127.0.0.1:8000/swagger/
 ```
 
 OpenAPI schema is available at:
@@ -218,22 +216,43 @@ http://127.0.0.1:8000/api/schema/
 
 ---
 
-# How to Use JWT Authentication
+## JWT Authentication Flow
 
-## 1. Get access and refresh token
+### 1. Register a user
 
-Send a POST request to:
+Endpoint:
 
 ```bash
-/api/token/
+POST /accounts/register/
 ```
 
-with request body:
+Request body:
 
 ```json
 {
-  "username": "your_username",
-  "password": "your_password"
+  "username": "asadtest1",
+  "email": "asadtest1@example.com",
+  "password": "Testpass123",
+  "password2": "Testpass123"
+}
+```
+
+---
+
+### 2. Login and get tokens
+
+Endpoint:
+
+```bash
+POST /accounts/login/
+```
+
+Request body:
+
+```json
+{
+  "username": "asadtest1",
+  "password": "Testpass123"
 }
 ```
 
@@ -248,53 +267,46 @@ Example response:
 
 ---
 
-## 2. Authorize in Swagger
+### 3. Refresh access token
 
-Open Swagger UI and click **Authorize**.
+Endpoint:
 
-Paste the access token in this format:
-
-```text
-Bearer your_access_token_here
+```bash
+POST /accounts/refresh/
 ```
 
-Example:
+Request body:
 
-```text
-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```json
+{
+  "refresh": "your_refresh_token_here"
+}
 ```
-
-After authorization, protected endpoints such as `POST /api/posts/` can be used.
 
 ---
 
-## Example: Create a Post via API
+### 4. Use the access token in Swagger
 
-### Endpoint
+Open Swagger UI and click **Authorize**.
+
+Paste **only the raw access token** — **not** JSON and **not** quoted.
+
+Correct:
+
+```text
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Not this:
+
+```text
+Bearer "eyJ..."
+```
+
+Swagger will automatically send it as:
 
 ```bash
-POST /api/posts/
-```
-
-### Request body
-
-```json
-{
-  "title": "My JWT Post",
-  "body": "This post was created using JWT authentication.",
-  "status": "published"
-}
-```
-
-### With category
-
-```json
-{
-  "title": "My JWT Post",
-  "body": "This post was created using JWT authentication.",
-  "category_id": 1,
-  "status": "published"
-}
+Authorization: Bearer <your_access_token>
 ```
 
 ---
@@ -317,10 +329,44 @@ POST /api/categories/
 
 ---
 
+## Example: Create a Post via API
+
+### Endpoint
+
+```bash
+POST /api/posts/
+```
+
+### Request body
+
+```json
+{
+  "title": "My JWT Post",
+  "body": "This post was created using JWT authentication.",
+  "category_id": 1,
+  "status": "published"
+}
+```
+
+---
+
 ## Current Permission Behavior
 
 * **Anyone** can read posts and categories using `GET` requests.
 * **Authenticated users with JWT** can create, update, and delete through the API.
+
+---
+
+## Tested API Flow
+
+The following flow has been manually tested through Swagger:
+
+* User registration
+* User login
+* Token refresh
+* User profile access
+* Categories CRUD
+* Posts CRUD
 
 ---
 
@@ -355,4 +401,3 @@ pip install -r requirements.txt
 ## Author
 
 **Muhammad Asad**
-

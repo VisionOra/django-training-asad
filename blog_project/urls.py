@@ -5,16 +5,16 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # Django built-in login/logout pages
-    path('accounts/', include('django.contrib.auth.urls')),
-
-    # Blog app URLs
+    # Blog app
     path('', include('apps.blog.urls')),
 
-    # Accounts / JWT API URLs
-    path('api/accounts/', include('apps.accounts.urls')),
+    # Accounts app
+    path('accounts/', include('apps.accounts.urls')),
 
-    # Swagger / schema URLs
+    # Built-in Django auth URLs: login/logout/password reset names
+    path('accounts/', include('django.contrib.auth.urls')),
+
+    # Swagger / schema
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
