@@ -6,14 +6,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # blog app urls
+    # Blog app
     path('', include('apps.blog.urls')),
 
-    # JWT token urls
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # Accounts app
+    path('accounts/', include('apps.accounts.urls')),
 
-    # Swagger / OpenAPI
+    # Built-in Django auth URLs: login/logout/password reset names
+    path('accounts/', include('django.contrib.auth.urls')),
+
+    # Swagger / schema
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
