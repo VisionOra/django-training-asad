@@ -15,3 +15,4 @@ db.sqlite3
 .vscode/
 
 blog_project/__pycache__/
+.env
