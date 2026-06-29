@@ -1,26 +1,44 @@
+<<<<<<< HEAD
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+=======
+from django.shortcuts import render, get_object_or_404
+>>>>>>> main
 
 from rest_framework import viewsets, permissions
 
 from .models import Post, Category
+<<<<<<< HEAD
 from .forms import PostForm
 from .serializers import PostSerializer, CategorySerializer
 
 
 # List all published posts
+=======
+from .serializers import PostSerializer, CategorySerializer
+
+
+# =========================
+# HTML VIEWS (READ ONLY)
+# =========================
+
+>>>>>>> main
 def post_list(request):
     posts = Post.objects.filter(status='published')
     return render(request, 'blog/post_list.html', {'posts': posts})
 
 
+<<<<<<< HEAD
 # Read a single post
+=======
+>>>>>>> main
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     return render(request, 'blog/post_detail.html', {'post': post})
 
 
+<<<<<<< HEAD
 # Create a new post
 @login_required
 def post_create(request):
@@ -63,6 +81,8 @@ def post_delete(request, pk):
     return render(request, 'blog/post_confirm_delete.html', {'post': post})
 
 
+=======
+>>>>>>> main
 # =========================
 # DRF API VIEWSETS
 # =========================
