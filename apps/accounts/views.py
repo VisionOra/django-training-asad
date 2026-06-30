@@ -1,6 +1,8 @@
+from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
-from django.contrib.auth.models import User
 from .serializers import RegisterSerializer, UserSerializer
+
+User = get_user_model()
 
 
 class RegisterView(generics.CreateAPIView):
