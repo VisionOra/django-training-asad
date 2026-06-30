@@ -1,12 +1,16 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import Http404
+
+from django.db import models
 
 from rest_framework import viewsets, permissions
 
 from .models import Post, Category
 from .forms import PostForm
 from .serializers import PostSerializer, CategorySerializer
+from .permissions import IsAuthorOrReadOnly
 
 
 # =========================
@@ -20,6 +24,8 @@ def post_list(request):
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    if post.status == 'draft' and post.author != request.user:
+        raise Http404
     return render(request, 'blog/post_detail.html', {'post': post})
 
 
@@ -73,9 +79,16 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.select_related('author', 'category').all()
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+    def get_queryset(self):
+        qs = Post.objects.select_related('author', 'category')
+        if self.request.user.is_authenticated:
+            return qs.filter(
+                models.Q(status='published') | models.Q(author=self.request.user)
+            )
+        return qs.filter(status='published')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

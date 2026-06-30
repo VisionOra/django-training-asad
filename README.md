@@ -40,7 +40,9 @@ This project supports blog posts, categories, REST API endpoints, Swagger docume
 * **drf-spectacular**
 * **drf-spectacular-sidecar**
 * **djangorestframework-simplejwt**
-* **SQLite**
+* **PostgreSQL**
+* **python-decouple**
+* **psycopg2-binary**
 
 ---
 
@@ -77,7 +79,7 @@ Blog Application/
 │   └── ...
 │
 │── manage.py
-│── db.sqlite3
+│── .env.example
 │── requirements.txt
 │── README.md
 ```

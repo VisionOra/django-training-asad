@@ -1,18 +1,17 @@
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # Blog app
+    # Blog app (HTML + API)
     path('', include('apps.blog.urls')),
 
-    # Accounts app
-    path('accounts/', include('apps.accounts.urls')),
+    # JWT auth API endpoints (register, login, refresh, profile)
+    path('api/accounts/', include('apps.accounts.urls')),
 
-    # Built-in Django auth URLs: login/logout/password reset names
+    # Built-in Django auth URLs for session-based HTML views (login/logout/password reset)
     path('accounts/', include('django.contrib.auth.urls')),
 
     # Swagger / schema
