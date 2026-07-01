@@ -143,15 +143,7 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Categories','description': 'Post category management'},
         {
             'name': 'Chatbot',
-            'description': (
-                '## AI Chatbot\n\n'
-                'Create sessions, send messages, and get AI replies powered by **Groq (LLaMA 3.3 70B)**.\n\n'
-                '**Flow:**\n'
-                '1. `POST /api/chat/sessions/` — start a new chat session\n'
-                '2. `POST /api/chat/sessions/{id}/message/` — send a message, receive AI reply\n'
-                '3. `GET  /api/chat/sessions/{id}/` — fetch session with full history\n'
-                '4. `DELETE /api/chat/sessions/{id}/clear/` — clear messages'
-            ),
+            'description': 'Manage AI chat sessions and exchange messages powered by Groq (LLaMA 3.3 70B).',
         },
     ],
 
