@@ -2,11 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404
-
 from django.db import models
 
 from rest_framework import viewsets, permissions
-from drf_spectacular.utils import extend_schema_view, extend_schema
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
 
 from .models import Post, Category
 from .forms import PostForm
@@ -14,9 +13,9 @@ from .serializers import PostSerializer, CategorySerializer
 from .permissions import IsAuthorOrReadOnly
 
 
-# =========================
-# HTML VIEWS
-# =========================
+# ─────────────────────────────────────────────
+#  HTML VIEWS
+# ─────────────────────────────────────────────
 
 def post_list(request):
     posts = Post.objects.filter(status='published')
@@ -69,17 +68,56 @@ def post_delete(request, pk):
     return render(request, 'blog/post_confirm_delete.html', {'post': post})
 
 
-# =========================
-# DRF API VIEWSETS
-# =========================
+# ─────────────────────────────────────────────
+#  API — CATEGORIES
+# ─────────────────────────────────────────────
+
+_category_example = {
+    "id": 1,
+    "name": "Technology",
+}
 
 @extend_schema_view(
-    list=extend_schema(tags=["Categories"]),
-    retrieve=extend_schema(tags=["Categories"]),
-    create=extend_schema(tags=["Categories"]),
-    update=extend_schema(tags=["Categories"]),
-    partial_update=extend_schema(tags=["Categories"]),
-    destroy=extend_schema(tags=["Categories"]),
+    list=extend_schema(
+        tags=["Categories"],
+        summary="List all categories",
+        description="Returns a list of all blog post categories.",
+        operation_id="categories_list",
+        examples=[OpenApiExample("Response", value=[_category_example], response_only=True, status_codes=["200"])],
+    ),
+    retrieve=extend_schema(
+        tags=["Categories"],
+        summary="Get a category",
+        description="Returns a single category by ID.",
+        operation_id="categories_retrieve",
+        examples=[OpenApiExample("Response", value=_category_example, response_only=True, status_codes=["200"])],
+    ),
+    create=extend_schema(
+        tags=["Categories"],
+        summary="Create a category",
+        description="Creates a new category. Requires authentication.",
+        operation_id="categories_create",
+        examples=[
+            OpenApiExample("Request", value={"name": "Technology"}, request_only=True),
+            OpenApiExample("Response", value=_category_example, response_only=True, status_codes=["201"]),
+        ],
+    ),
+    update=extend_schema(
+        tags=["Categories"],
+        summary="Update a category",
+        operation_id="categories_update",
+    ),
+    partial_update=extend_schema(
+        tags=["Categories"],
+        summary="Partially update a category",
+        operation_id="categories_partial_update",
+    ),
+    destroy=extend_schema(
+        tags=["Categories"],
+        summary="Delete a category",
+        description="Permanently deletes a category.",
+        operation_id="categories_delete",
+    ),
 )
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -87,13 +125,75 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
+# ─────────────────────────────────────────────
+#  API — POSTS
+# ─────────────────────────────────────────────
+
+_post_example = {
+    "id": 1,
+    "title": "Getting Started with Django",
+    "body": "Django is a high-level Python web framework...",
+    "author": "john_doe",
+    "category": {"id": 1, "name": "Technology"},
+    "status": "published",
+    "created_at": "2026-07-01T10:00:00Z",
+    "updated_at": "2026-07-01T10:00:00Z",
+}
+
 @extend_schema_view(
-    list=extend_schema(tags=["Posts"]),
-    retrieve=extend_schema(tags=["Posts"]),
-    create=extend_schema(tags=["Posts"]),
-    update=extend_schema(tags=["Posts"]),
-    partial_update=extend_schema(tags=["Posts"]),
-    destroy=extend_schema(tags=["Posts"]),
+    list=extend_schema(
+        tags=["Posts"],
+        summary="List all posts",
+        description=(
+            "Returns all published posts. Authenticated users also see their own drafts."
+        ),
+        operation_id="posts_list",
+        examples=[OpenApiExample("Response", value=[_post_example], response_only=True, status_codes=["200"])],
+    ),
+    retrieve=extend_schema(
+        tags=["Posts"],
+        summary="Get a post",
+        description="Returns a single post by ID. Draft posts are only visible to their author.",
+        operation_id="posts_retrieve",
+        examples=[OpenApiExample("Response", value=_post_example, response_only=True, status_codes=["200"])],
+    ),
+    create=extend_schema(
+        tags=["Posts"],
+        summary="Create a post",
+        description="Creates a new blog post. The authenticated user is automatically set as the author.",
+        operation_id="posts_create",
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "title": "Getting Started with Django",
+                    "body": "Django is a high-level Python web framework...",
+                    "category_id": 1,
+                    "status": "draft",
+                },
+                request_only=True,
+            ),
+            OpenApiExample("Response", value=_post_example, response_only=True, status_codes=["201"]),
+        ],
+    ),
+    update=extend_schema(
+        tags=["Posts"],
+        summary="Update a post",
+        description="Fully updates a post. Only the author can update their own posts.",
+        operation_id="posts_update",
+    ),
+    partial_update=extend_schema(
+        tags=["Posts"],
+        summary="Partially update a post",
+        description="Updates one or more fields of a post. Only the author can update their own posts.",
+        operation_id="posts_partial_update",
+    ),
+    destroy=extend_schema(
+        tags=["Posts"],
+        summary="Delete a post",
+        description="Permanently deletes a post. Only the author can delete their own posts.",
+        operation_id="posts_delete",
+    ),
 )
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer

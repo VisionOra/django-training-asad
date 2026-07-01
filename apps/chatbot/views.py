@@ -9,21 +9,77 @@ from .services.ai_service import get_ai_response
 
 
 # ─────────────────────────────────────────────
+#  SHARED EXAMPLES
+# ─────────────────────────────────────────────
+
+_session_list_example = {
+    "id": 1,
+    "title": "Blog post ideas",
+    "message_count": 4,
+    "created_at": "2026-07-01T09:00:00Z",
+    "updated_at": "2026-07-01T09:05:00Z",
+}
+
+_session_detail_example = {
+    "id": 1,
+    "title": "Blog post ideas",
+    "message_count": 2,
+    "messages": [
+        {"id": 1, "role": "user",      "content": "Give me 3 blog post ideas about Django.", "created_at": "2026-07-01T09:00:00Z"},
+        {"id": 2, "role": "assistant", "content": "Here are 3 ideas:\n1. ...\n2. ...\n3. ...", "created_at": "2026-07-01T09:00:01Z"},
+    ],
+    "created_at": "2026-07-01T09:00:00Z",
+    "updated_at": "2026-07-01T09:00:01Z",
+}
+
+_message_example = {
+    "id": 1,
+    "role": "user",
+    "content": "Give me 3 blog post ideas about Django.",
+    "created_at": "2026-07-01T09:00:00Z",
+}
+
+_send_response_example = {
+    "session_id": 1,
+    "session_title": "Give me 3 blog post ideas about Django.",
+    "user_message": {
+        "id": 3,
+        "role": "user",
+        "content": "Give me 3 blog post ideas about Django.",
+        "created_at": "2026-07-01T09:10:00Z",
+    },
+    "ai_reply": {
+        "id": 4,
+        "role": "assistant",
+        "content": "Here are 3 blog post ideas about Django:\n\n1. **Getting Started with Django REST Framework**\n2. **Django ORM Deep Dive**\n3. **Deploying Django to Production**",
+        "created_at": "2026-07-01T09:10:01Z",
+    },
+}
+
+
+# ─────────────────────────────────────────────
 #  CHAT SESSIONS
 # ─────────────────────────────────────────────
 
 @extend_schema_view(
     get=extend_schema(
         tags=["Chatbot"],
-        summary="List all chat sessions",
-        description="Returns all chat sessions belonging to the authenticated user, ordered by most recently updated.",
+        summary="List chat sessions",
+        description="Returns all chat sessions for the authenticated user, ordered by most recently updated.",
         operation_id="chatbot_session_list",
+        examples=[
+            OpenApiExample("Response", value=[_session_list_example], response_only=True, status_codes=["200"]),
+        ],
     ),
     post=extend_schema(
         tags=["Chatbot"],
-        summary="Create a new chat session",
-        description="Creates a new empty chat session for the authenticated user. Optionally provide a `title`; defaults to **New Chat**.",
+        summary="Create a chat session",
+        description="Creates a new empty chat session. Optionally provide a `title`; defaults to **New Chat**.",
         operation_id="chatbot_session_create",
+        examples=[
+            OpenApiExample("Request", value={"title": "Blog post ideas"}, request_only=True),
+            OpenApiExample("Response", value=_session_detail_example, response_only=True, status_codes=["201"]),
+        ],
     ),
 )
 class ChatSessionListCreateView(generics.ListCreateAPIView):
@@ -44,15 +100,22 @@ class ChatSessionListCreateView(generics.ListCreateAPIView):
 @extend_schema_view(
     get=extend_schema(
         tags=["Chatbot"],
-        summary="Retrieve a chat session with full history",
-        description="Returns the session details along with the complete message history in chronological order.",
+        summary="Get session with full chat history",
+        description="Returns the session details and all messages in chronological order.",
         operation_id="chatbot_session_retrieve",
+        examples=[
+            OpenApiExample("Response", value=_session_detail_example, response_only=True, status_codes=["200"]),
+        ],
     ),
     patch=extend_schema(
         tags=["Chatbot"],
         summary="Rename a chat session",
         description="Update the `title` of an existing session.",
         operation_id="chatbot_session_update",
+        examples=[
+            OpenApiExample("Request", value={"title": "My renamed session"}, request_only=True),
+            OpenApiExample("Response", value={**_session_detail_example, "title": "My renamed session"}, response_only=True, status_codes=["200"]),
+        ],
     ),
     put=extend_schema(exclude=True),
     delete=extend_schema(
@@ -76,9 +139,20 @@ class ChatSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema(
     tags=["Chatbot"],
-    summary="Get chat history",
-    description="Returns all messages in a session in chronological order. Each message has a `role` of **user** or **assistant**.",
+    summary="Get all messages in a session",
+    description="Returns every message in the session in chronological order. Each message has a `role` of `user` or `assistant`.",
     operation_id="chatbot_message_list",
+    examples=[
+        OpenApiExample(
+            "Response",
+            value=[
+                {"id": 1, "role": "user",      "content": "Give me 3 blog post ideas.", "created_at": "2026-07-01T09:00:00Z"},
+                {"id": 2, "role": "assistant", "content": "Here are 3 ideas:\n1. ...",  "created_at": "2026-07-01T09:00:01Z"},
+            ],
+            response_only=True,
+            status_codes=["200"],
+        ),
+    ],
 )
 class ChatMessageListView(generics.ListAPIView):
     serializer_class = ChatMessageSerializer
@@ -94,43 +168,47 @@ class ChatMessageListView(generics.ListAPIView):
 
 @extend_schema(
     tags=["Chatbot"],
-    summary="Send a message and get AI reply",
+    summary="Send a message — receive AI reply",
     description=(
-        "Send a message to the AI inside a specific chat session.\n\n"
-        "- The user message is saved first\n"
-        "- Full conversation history is sent to the AI for context\n"
-        "- Both the user message and AI reply are returned\n"
-        "- The session `title` is auto-set from the first message if it hasn't been renamed"
+        "Send a message to the AI within a specific chat session.\n\n"
+        "The full conversation history is included with every request so the AI maintains context. "
+        "The session title is automatically set from the first message if it has not been renamed."
     ),
     operation_id="chatbot_send_message",
     request=inline_serializer(
         name="SendMessageRequest",
-        fields={"message": drf_serializers.CharField(help_text="The message text to send to the AI")},
+        fields={"message": drf_serializers.CharField(help_text="The message to send to the AI.")},
     ),
     responses={
         201: inline_serializer(
             name="SendMessageResponse",
             fields={
-                "session_id": drf_serializers.IntegerField(),
+                "session_id":    drf_serializers.IntegerField(),
                 "session_title": drf_serializers.CharField(),
-                "user_message": ChatMessageSerializer(),
-                "ai_reply": ChatMessageSerializer(),
+                "user_message":  ChatMessageSerializer(),
+                "ai_reply":      ChatMessageSerializer(),
             },
         ),
         400: inline_serializer(
-            name="SendMessageError",
+            name="SendMessageBadRequest",
             fields={"detail": drf_serializers.CharField()},
         ),
         503: inline_serializer(
-            name="AIServiceError",
+            name="AIServiceUnavailable",
             fields={"detail": drf_serializers.CharField()},
         ),
     },
     examples=[
         OpenApiExample(
-            "Send a message",
-            value={"message": "Give me 3 blog post ideas about Python."},
+            "Request",
+            value={"message": "Give me 3 blog post ideas about Django."},
             request_only=True,
+        ),
+        OpenApiExample(
+            "Response",
+            value=_send_response_example,
+            response_only=True,
+            status_codes=["201"],
         ),
     ],
 )
@@ -162,17 +240,17 @@ class SendMessageView(APIView):
         ai_msg = ChatMessage.objects.create(session=session, role='assistant', content=ai_content)
 
         return Response({
-            "session_id": session.id,
+            "session_id":    session.id,
             "session_title": session.title,
-            "user_message": ChatMessageSerializer(user_msg).data,
-            "ai_reply": ChatMessageSerializer(ai_msg).data,
+            "user_message":  ChatMessageSerializer(user_msg).data,
+            "ai_reply":      ChatMessageSerializer(ai_msg).data,
         }, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(
     tags=["Chatbot"],
     summary="Clear all messages in a session",
-    description="Deletes all messages inside a session without deleting the session itself. The session title resets to **New Chat**.",
+    description="Deletes all messages in a session without removing the session itself. The title resets to **New Chat**.",
     operation_id="chatbot_session_clear",
     responses={
         200: inline_serializer(
@@ -180,6 +258,14 @@ class SendMessageView(APIView):
             fields={"detail": drf_serializers.CharField()},
         ),
     },
+    examples=[
+        OpenApiExample(
+            "Response",
+            value={"detail": "Cleared 6 messages."},
+            response_only=True,
+            status_codes=["200"],
+        ),
+    ],
 )
 class ClearSessionView(APIView):
     permission_classes = [permissions.IsAuthenticated]
