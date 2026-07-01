@@ -108,6 +108,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+import os, drf_spectacular_sidecar
+STATICFILES_DIRS = [os.path.join(os.path.dirname(drf_spectacular_sidecar.__file__), 'static')]
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
