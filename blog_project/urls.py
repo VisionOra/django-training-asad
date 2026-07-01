@@ -10,6 +10,7 @@ urlpatterns = [
 
     # JWT auth API endpoints (register, login, refresh, profile)
     path('api/accounts/', include('apps.accounts.urls')),
+    path('api/chat/', include('apps.chatbot.urls')),
 
     # Built-in Django auth URLs for session-based HTML views (login/logout/password reset)
     path('accounts/', include('django.contrib.auth.urls')),
