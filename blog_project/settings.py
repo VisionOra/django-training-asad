@@ -30,10 +30,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # local apps    
+    # local apps
     'apps.blog',
     'apps.accounts',
     'apps.chatbot',
+    'apps.source_generator',
 
     # third-party apps
     'rest_framework',
@@ -147,6 +148,10 @@ SPECTACULAR_SETTINGS = {
         {
             'name': 'Chatbot',
             'description': 'Manage AI chat sessions and exchange messages powered by Groq (LLaMA 3.3 70B).',
+        },
+        {
+            'name': 'Source Generator',
+            'description': 'Search any topic and fetch authentic sources via the Serper (Google Search) API. Results are saved per user and support full CRUD.',
         },
     ],
 

@@ -18,6 +18,19 @@
         nav a { color: white; text-decoration: none; margin-left: 15px; font-size: 15px; }
         nav a:hover { text-decoration: underline; }
         nav .brand { font-size: 20px; font-weight: bold; color: #1abc9c; }
+        .api-btn {
+            background: #1abc9c;
+            color: #fff !important;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none !important;
+            margin-left: 20px;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+        .api-btn:hover { background: #16a085; text-decoration: none !important; }
 
         .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
 
@@ -63,7 +76,7 @@
         {% if user.is_authenticated %}
             <span style="color:white;">{{ user.username }}</span>
         {% endif %}
-        <a href="{% url 'swagger-ui' %}">API Docs</a>
+        <a class="api-btn" href="{% url 'swagger-ui' %}" target="_blank">API Docs</a>
     </div>
 </nav>
 

@@ -141,7 +141,6 @@ class ChatSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     tags=["Chatbot"],
     summary="Get all messages in a session",
     description="Returns every message in the session in chronological order. Each message has a `role` of `user` or `assistant`.",
-    operation_id="chatbot_message_list",
     examples=[
         OpenApiExample(
             "Response",
@@ -174,7 +173,6 @@ class ChatMessageListView(generics.ListAPIView):
         "The full conversation history is included with every request so the AI maintains context. "
         "The session title is automatically set from the first message if it has not been renamed."
     ),
-    operation_id="chatbot_send_message",
     request=inline_serializer(
         name="SendMessageRequest",
         fields={"message": drf_serializers.CharField(help_text="The message to send to the AI.")},
@@ -251,7 +249,6 @@ class SendMessageView(APIView):
     tags=["Chatbot"],
     summary="Clear all messages in a session",
     description="Deletes all messages in a session without removing the session itself. The title resets to **New Chat**.",
-    operation_id="chatbot_session_clear",
     responses={
         200: inline_serializer(
             name="ClearSessionResponse",
