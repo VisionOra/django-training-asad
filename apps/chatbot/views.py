@@ -1,21 +1,15 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, serializers as drf_serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, inline_serializer
-from drf_spectacular.types import OpenApiTypes
-from rest_framework import serializers as drf_serializers
 
 from .models import ChatSession, ChatMessage
-from .serializers import (
-    ChatSessionSerializer,
-    ChatSessionListSerializer,
-    ChatMessageSerializer,
-)
+from .serializers import ChatSessionSerializer, ChatSessionListSerializer, ChatMessageSerializer
+from .services.ai_service import get_ai_response
 
 
 @extend_schema(tags=["Chat Sessions"])
 class ChatSessionListCreateView(generics.ListCreateAPIView):
-    """GET = list my sessions (lightweight), POST = create a new session."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
@@ -32,7 +26,6 @@ class ChatSessionListCreateView(generics.ListCreateAPIView):
 
 @extend_schema(tags=["Chat Sessions"])
 class ChatSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """GET = session with full message history, PATCH = rename, DELETE = remove."""
     serializer_class = ChatSessionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -42,7 +35,6 @@ class ChatSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema(tags=["Messages"])
 class ChatMessageListView(generics.ListAPIView):
-    """GET all messages in one session."""
     serializer_class = ChatMessageSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -70,45 +62,31 @@ class ChatMessageListView(generics.ListAPIView):
     )},
 )
 class SendMessageView(APIView):
-    """POST { content } -> saves user message, gets AI reply, returns both."""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, session_id):
         try:
             session = ChatSession.objects.get(id=session_id, user=request.user)
         except ChatSession.DoesNotExist:
-            return Response(
-                {"detail": "Session not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Session not found."}, status=status.HTTP_404_NOT_FOUND)
 
         user_content = request.data.get('content', '').strip()
         if not user_content:
-            return Response(
-                {"detail": "content is required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": "content is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        user_msg = ChatMessage.objects.create(
-            session=session, role='user', content=user_content
-        )
+        user_msg = ChatMessage.objects.create(session=session, role='user', content=user_content)
 
-        # Auto-title the session from the first user message
         if session.title == "New Chat" and session.messages.count() == 1:
             session.title = user_content[:60]
             session.save(update_fields=['title'])
 
-        from .langchain_service import get_ai_response
         try:
             ai_content = get_ai_response(session, user_content)
         except RuntimeError as exc:
-            # Delete the user message we already saved so the session stays clean
             user_msg.delete()
             return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-        ai_msg = ChatMessage.objects.create(
-            session=session, role='assistant', content=ai_content
-        )
+        ai_msg = ChatMessage.objects.create(session=session, role='assistant', content=ai_content)
 
         return Response({
             "user_message": ChatMessageSerializer(user_msg).data,
@@ -125,7 +103,6 @@ class SendMessageView(APIView):
     )},
 )
 class ClearSessionView(APIView):
-    """DELETE all messages in a session without deleting the session itself."""
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, session_id):

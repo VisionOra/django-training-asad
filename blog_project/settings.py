@@ -126,15 +126,26 @@ REST_FRAMEWORK = {
 }
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Blog API',
-    'DESCRIPTION': 'API documentation for the Blog application',
+    'DESCRIPTION': (
+        'REST API for the Blog Application.\n\n'
+        'Authenticate via **POST /api/accounts/login/** to get a JWT token, '
+        'then click **Authorize** and enter: `Bearer <your_token>`'
+    ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_DIST': 'SIDECAR',
     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
 
-    'SECURITY': [
-        {'BearerAuth': []},
+    # Defines the order and description of tags in Swagger UI
+    'TAGS': [
+        {'name': 'Accounts', 'description': 'User registration, login, and profile'},
+        {'name': 'Posts', 'description': 'Blog post CRUD operations'},
+        {'name': 'Categories', 'description': 'Post category management'},
+        {'name': 'Chat Sessions', 'description': 'Create and manage AI chat sessions'},
+        {'name': 'Messages', 'description': 'Send messages and retrieve AI responses'},
     ],
+
+    'SECURITY': [{'BearerAuth': []}],
 
     'COMPONENTS': {
         'securitySchemes': {
