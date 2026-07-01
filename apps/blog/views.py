@@ -6,6 +6,7 @@ from django.http import Http404
 from django.db import models
 
 from rest_framework import viewsets, permissions
+from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from .models import Post, Category
 from .forms import PostForm
@@ -72,23 +73,39 @@ def post_delete(request, pk):
 # DRF API VIEWSETS
 # =========================
 
+@extend_schema_view(
+    list=extend_schema(tags=["Categories"]),
+    retrieve=extend_schema(tags=["Categories"]),
+    create=extend_schema(tags=["Categories"]),
+    update=extend_schema(tags=["Categories"]),
+    partial_update=extend_schema(tags=["Categories"]),
+    destroy=extend_schema(tags=["Categories"]),
+)
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
+@extend_schema_view(
+    list=extend_schema(tags=["Posts"]),
+    retrieve=extend_schema(tags=["Posts"]),
+    create=extend_schema(tags=["Posts"]),
+    update=extend_schema(tags=["Posts"]),
+    partial_update=extend_schema(tags=["Posts"]),
+    destroy=extend_schema(tags=["Posts"]),
+)
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
     def get_queryset(self):
-        qs = Post.objects.select_related('author', 'category')
+        qs = Post.objects.select_related("author", "category")
         if self.request.user.is_authenticated:
             return qs.filter(
-                models.Q(status='published') | models.Q(author=self.request.user)
+                models.Q(status="published") | models.Q(author=self.request.user)
             )
-        return qs.filter(status='published')
+        return qs.filter(status="published")
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

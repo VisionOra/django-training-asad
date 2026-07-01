@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     # local apps    
     'apps.blog',
     'apps.accounts',
+    'apps.chatbot',
 
     # third-party apps
     'rest_framework',
