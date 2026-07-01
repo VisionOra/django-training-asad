@@ -129,15 +129,28 @@ REST_FRAMEWORK = {
 }
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Blog API',
-    'DESCRIPTION': 'API documentation for the Blog application',
+    'DESCRIPTION': (
+        'REST API for the Blog Application.\n\n'
+        'Authenticate via **POST /api/accounts/login/** to get a JWT token, '
+        'then click **Authorize** and enter: `Bearer <your_token>`'
+    ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_DIST': 'SIDECAR',
     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
 
-    'SECURITY': [
-        {'BearerAuth': []},
+    # Tag order and descriptions shown in Swagger UI
+    'TAGS': [
+        {'name': 'Accounts',  'description': 'User registration, login, and profile'},
+        {'name': 'Posts',     'description': 'Blog post CRUD operations'},
+        {'name': 'Categories','description': 'Post category management'},
+        {
+            'name': 'Chatbot',
+            'description': 'Manage AI chat sessions and exchange messages powered by Groq (LLaMA 3.3 70B).',
+        },
     ],
+
+    'SECURITY': [{'BearerAuth': []}],
 
     'COMPONENTS': {
         'securitySchemes': {
