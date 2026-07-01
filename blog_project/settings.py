@@ -136,13 +136,23 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_DIST': 'SIDECAR',
     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
 
-    # Defines the order and description of tags in Swagger UI
+    # Tag order and descriptions shown in Swagger UI
     'TAGS': [
-        {'name': 'Accounts', 'description': 'User registration, login, and profile'},
-        {'name': 'Posts', 'description': 'Blog post CRUD operations'},
-        {'name': 'Categories', 'description': 'Post category management'},
-        {'name': 'Chat Sessions', 'description': 'Create and manage AI chat sessions'},
-        {'name': 'Messages', 'description': 'Send messages and retrieve AI responses'},
+        {'name': 'Accounts',  'description': 'User registration, login, and profile'},
+        {'name': 'Posts',     'description': 'Blog post CRUD operations'},
+        {'name': 'Categories','description': 'Post category management'},
+        {
+            'name': 'Chatbot',
+            'description': (
+                '## AI Chatbot\n\n'
+                'Create sessions, send messages, and get AI replies powered by **Groq (LLaMA 3.3 70B)**.\n\n'
+                '**Flow:**\n'
+                '1. `POST /api/chat/sessions/` — start a new chat session\n'
+                '2. `POST /api/chat/sessions/{id}/message/` — send a message, receive AI reply\n'
+                '3. `GET  /api/chat/sessions/{id}/` — fetch session with full history\n'
+                '4. `DELETE /api/chat/sessions/{id}/clear/` — clear messages'
+            ),
+        },
     ],
 
     'SECURITY': [{'BearerAuth': []}],
