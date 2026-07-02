@@ -1,106 +1,85 @@
-# django-training-asad
-
 # Django Blog Application
 
-A simple **Blog Application** built with **Django** and **Django REST Framework (DRF)**.
-This project supports blog posts, categories, REST API endpoints, Swagger documentation, and **JWT authentication** for protected API operations.
+A full-featured **Django REST API** with a web UI, covering blog management, AI-powered chatbot, and automated source generation — all secured with JWT authentication and backed by PostgreSQL.
 
 ---
 
 ## Features
 
-### Blog Functionality
+| App | Description |
+|-----|-------------|
+| **Blog** | CRUD for posts and categories with a web UI |
+| **Accounts** | Register, login, token refresh, user profile |
+| **Chatbot** | AI chat sessions powered by Groq (LLaMA 3.3 70B) via LangChain |
+| **Source Generator** | Fetch authentic Google search results via the Serper API |
 
-* View all published blog posts
-* View a single post in detail
-* Organize posts by category
-* Track post author and status (`draft` / `published`)
-
-### API Functionality
-
-* Full CRUD API for **Posts**
-* Full CRUD API for **Categories**
-* Public read access for API endpoints
-* Protected write operations using **JWT authentication**
-
-### Authentication & Documentation
-
-* JWT authentication using **SimpleJWT**
-* Custom accounts API for **register, login, refresh, and profile**
-* Swagger/OpenAPI documentation using **drf-spectacular**
-* API testing directly from Swagger UI
+- JWT authentication (access: 60 min, refresh: 7 days)
+- PostgreSQL database
+- Swagger UI + ReDoc for all endpoints
+- Modular `services/` architecture in Chatbot and Source Generator
 
 ---
 
 ## Tech Stack
 
-* **Python**
-* **Django**
-* **Django REST Framework**
-* **drf-spectacular**
-* **drf-spectacular-sidecar**
-* **djangorestframework-simplejwt**
-* **PostgreSQL**
-* **python-decouple**
-* **psycopg2-binary**
+- **Python 3.14** / **Django 6**
+- **Django REST Framework**
+- **drf-spectacular** + **drf-spectacular-sidecar** (Swagger/ReDoc)
+- **djangorestframework-simplejwt**
+- **LangChain** + **langchain-groq** (Groq LLaMA 3.3 70B)
+- **Serper API** (Google Search)
+- **PostgreSQL** + **psycopg2-binary**
+- **python-decouple**
 
 ---
 
 ## Project Structure
 
-```bash
+```
 Blog Application/
-│── apps/
-│   ├── blog/                     # Blog app
-│   │   ├── migrations/
+├── apps/
+│   ├── blog/                     # Blog posts & categories (web UI + API)
 │   │   ├── templates/blog/
-│   │   ├── admin.py
-│   │   ├── apps.py
-│   │   ├── forms.py
+│   │   ├── migrations/
 │   │   ├── models.py
 │   │   ├── serializers.py
-│   │   ├── tests.py
-│   │   ├── urls.py
-│   │   └── views.py
+│   │   ├── views.py
+│   │   └── urls.py
 │   │
-│   └── accounts/                 # Accounts / JWT auth app
+│   ├── accounts/                 # Custom User model + JWT auth
+│   │   ├── migrations/
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── views.py
+│   │   └── urls.py
+│   │
+│   ├── chatbot/                  # AI chat sessions (Groq / LangChain)
+│   │   ├── migrations/
+│   │   ├── services/
+│   │   │   └── ai_service.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── views.py
+│   │   └── urls.py
+│   │
+│   └── source_generator/         # Google search source fetcher (Serper)
 │       ├── migrations/
-│       ├── admin.py
-│       ├── apps.py
+│       ├── services/
+│       │   └── serper_service.py
 │       ├── models.py
 │       ├── serializers.py
-│       ├── tests.py
-│       ├── urls.py
-│       └── views.py
+│       ├── views.py
+│       └── urls.py
 │
-│── blog_project/                 # Project settings and root urls
+├── blog_project/
 │   ├── settings.py
-│   ├── urls.py
-│   └── ...
+│   └── urls.py
 │
-│── manage.py
-│── .env.example
-│── requirements.txt
-│── README.md
+├── manage.py
+├── requirements.txt
+├── .env                          # secrets (gitignored)
+└── .env.example
 ```
-
----
-
-## Models
-
-### Category
-
-* `name`
-
-### Post
-
-* `title`
-* `body`
-* `author`
-* `category`
-* `created_at`
-* `updated_at`
-* `status`
 
 ---
 
@@ -115,18 +94,10 @@ cd django-training-asad
 
 ### 2. Create and activate a virtual environment
 
-#### macOS / Linux
-
 ```bash
 python3 -m venv venv
-source venv/bin/activate
-```
-
-#### Windows
-
-```bash
-python -m venv venv
-venv\Scripts\activate
+source venv/bin/activate        # macOS/Linux
+venv\Scripts\activate           # Windows
 ```
 
 ### 3. Install dependencies
@@ -135,267 +106,205 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Apply migrations
+### 4. Configure environment variables
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+`.env` contents:
+
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+DB_NAME=blog_db
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_HOST=localhost
+DB_PORT=5432
+
+GROQ_API_KEY=your_groq_api_key
+SERPER_API_KEY=your_serper_api_key
+```
+
+### 5. Set up PostgreSQL
+
+```sql
+CREATE DATABASE blog_db;
+```
+
+### 6. Apply migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 5. Create a superuser
-
-```bash
-python manage.py createsuperuser
-```
-
-### 6. Run the development server
+### 7. Run the development server
 
 ```bash
 python manage.py runserver
 ```
 
-Server will start at:
-
-```bash
-http://127.0.0.1:8000/
-```
+Visit: `http://127.0.0.1:8000/`
 
 ---
 
 ## Available URLs
 
-### HTML Pages
+| URL | Description |
+|-----|-------------|
+| `http://127.0.0.1:8000/` | Blog web UI (post list) |
+| `http://127.0.0.1:8000/swagger/` | Swagger UI — all endpoints |
+| `http://127.0.0.1:8000/redoc/` | ReDoc documentation |
+| `http://127.0.0.1:8000/admin/` | Django admin panel |
 
-* **Home / Post List**
-  `http://127.0.0.1:8000/`
-
-* **Post Detail**
-  `http://127.0.0.1:8000/post/<id>/`
+> The **API Docs** button in the top-right of the web UI opens Swagger directly.
 
 ---
 
 ## API Endpoints
 
-## Accounts
+### Accounts — `/api/accounts/`
 
-* `POST /accounts/register/` → Register a new user
-* `POST /accounts/login/` → Login and get JWT access/refresh tokens
-* `POST /accounts/refresh/` → Get a new access token using refresh token
-* `GET /accounts/profile/` → Get logged-in user profile (**JWT required**)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/accounts/register/` | No | Register a new user |
+| POST | `/api/accounts/login/` | No | Login — returns JWT tokens |
+| POST | `/api/accounts/refresh/` | No | Refresh access token |
+| GET | `/api/accounts/profile/` | JWT | Get current user profile |
 
-## Categories
+### Blog Posts — `/api/posts/`
 
-* `GET /api/categories/` → List all categories
-* `POST /api/categories/` → Create a category (**JWT required**)
-* `GET /api/categories/<id>/` → Retrieve a category
-* `PUT /api/categories/<id>/` → Update a category (**JWT required**)
-* `PATCH /api/categories/<id>/` → Partially update a category (**JWT required**)
-* `DELETE /api/categories/<id>/` → Delete a category (**JWT required**)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/posts/` | No | List all posts |
+| POST | `/api/posts/` | JWT | Create a post |
+| GET | `/api/posts/<id>/` | No | Retrieve a post |
+| PATCH | `/api/posts/<id>/` | JWT | Update a post |
+| DELETE | `/api/posts/<id>/` | JWT | Delete a post |
 
-## Posts
+### Categories — `/api/categories/`
 
-* `GET /api/posts/` → List all posts
-* `POST /api/posts/` → Create a post (**JWT required**)
-* `GET /api/posts/<id>/` → Retrieve a single post
-* `PUT /api/posts/<id>/` → Update a post (**JWT required**)
-* `PATCH /api/posts/<id>/` → Partially update a post (**JWT required**)
-* `DELETE /api/posts/<id>/` → Delete a post (**JWT required**)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/categories/` | No | List all categories |
+| POST | `/api/categories/` | JWT | Create a category |
+| GET | `/api/categories/<id>/` | No | Retrieve a category |
+| PATCH | `/api/categories/<id>/` | JWT | Update a category |
+| DELETE | `/api/categories/<id>/` | JWT | Delete a category |
+
+### Chatbot — `/api/chat/`
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/chat/sessions/` | JWT | List all chat sessions |
+| POST | `/api/chat/sessions/` | JWT | Create a new chat session |
+| GET | `/api/chat/sessions/<id>/` | JWT | Get session with full chat history |
+| PATCH | `/api/chat/sessions/<id>/` | JWT | Rename a session |
+| DELETE | `/api/chat/sessions/<id>/` | JWT | Delete a session |
+| GET | `/api/chat/sessions/<id>/messages/` | JWT | List all messages in a session |
+| POST | `/api/chat/sessions/<id>/send/` | JWT | Send a message — receive AI reply |
+| DELETE | `/api/chat/sessions/<id>/clear/` | JWT | Clear all messages in a session |
+
+### Source Generator — `/api/sources/`
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/sources/searches/` | JWT | List all searches |
+| POST | `/api/sources/searches/` | JWT | Generate sources for a topic |
+| GET | `/api/sources/searches/<id>/` | JWT | Get search with all its sources |
+| PATCH | `/api/sources/searches/<id>/` | JWT | Update search topic or limit |
+| DELETE | `/api/sources/searches/<id>/` | JWT | Delete a search |
+| POST | `/api/sources/searches/<id>/refetch/` | JWT | Re-fetch sources from Serper API |
+| GET | `/api/sources/searches/<id>/sources/` | JWT | List sources for a search |
+| GET | `/api/sources/sources/<id>/` | JWT | Retrieve a single source |
+| PATCH | `/api/sources/sources/<id>/` | JWT | Update a single source |
+| DELETE | `/api/sources/sources/<id>/` | JWT | Delete a single source |
 
 ---
 
-## Swagger / API Documentation
+## JWT Authentication
 
-Swagger UI is available at:
-
-```bash
-http://127.0.0.1:8000/swagger/
-```
-
-OpenAPI schema is available at:
+### 1. Register
 
 ```bash
-http://127.0.0.1:8000/api/schema/
+POST /api/accounts/register/
 ```
-
----
-
-## JWT Authentication Flow
-
-### 1. Register a user
-
-Endpoint:
-
-```bash
-POST /accounts/register/
-```
-
-Request body:
-
 ```json
 {
-  "username": "asadtest1",
-  "email": "asadtest1@example.com",
-  "password": "Testpass123",
-  "password2": "Testpass123"
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "StrongPass123",
+  "password2": "StrongPass123"
+}
+```
+
+### 2. Login — get tokens
+
+```bash
+POST /api/accounts/login/
+```
+```json
+{
+  "username": "john_doe",
+  "password": "StrongPass123"
+}
+```
+
+Response:
+```json
+{
+  "refresh": "eyJ...",
+  "access": "eyJ..."
+}
+```
+
+### 3. Authorize in Swagger
+
+Open `http://127.0.0.1:8000/swagger/` → click **Authorize** → paste the raw access token (no `Bearer` prefix — Swagger adds it automatically).
+
+### 4. Refresh token
+
+```bash
+POST /api/accounts/refresh/
+```
+```json
+{
+  "refresh": "eyJ..."
 }
 ```
 
 ---
 
-### 2. Login and get tokens
-
-Endpoint:
+## Chatbot Usage
 
 ```bash
-POST /accounts/login/
+# 1. Create a session
+POST /api/chat/sessions/
+{ "title": "My first chat" }
+
+# 2. Send a message
+POST /api/chat/sessions/1/send/
+{ "message": "Give me 3 blog post ideas about Django." }
 ```
 
-Request body:
-
-```json
-{
-  "username": "asadtest1",
-  "password": "Testpass123"
-}
-```
-
-Example response:
-
-```json
-{
-  "refresh": "your_refresh_token_here",
-  "access": "your_access_token_here"
-}
-```
+The AI uses the full conversation history for context on every request.
 
 ---
 
-### 3. Refresh access token
-
-Endpoint:
+## Source Generator Usage
 
 ```bash
-POST /accounts/refresh/
-```
+# Fetch sources for a topic
+POST /api/sources/searches/
+{ "topic": "Django REST Framework", "limit": 5 }
 
-Request body:
-
-```json
-{
-  "refresh": "your_refresh_token_here"
-}
-```
-
----
-
-### 4. Use the access token in Swagger
-
-Open Swagger UI and click **Authorize**.
-
-Paste **only the raw access token** — **not** JSON and **not** quoted.
-
-Correct:
-
-```text
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-Not this:
-
-```text
-Bearer "eyJ..."
-```
-
-Swagger will automatically send it as:
-
-```bash
-Authorization: Bearer <your_access_token>
-```
-
----
-
-## Example: Create a Category via API
-
-### Endpoint
-
-```bash
-POST /api/categories/
-```
-
-### Request body
-
-```json
-{
-  "name": "Technology"
-}
-```
-
----
-
-## Example: Create a Post via API
-
-### Endpoint
-
-```bash
-POST /api/posts/
-```
-
-### Request body
-
-```json
-{
-  "title": "My JWT Post",
-  "body": "This post was created using JWT authentication.",
-  "category_id": 1,
-  "status": "published"
-}
-```
-
----
-
-## Current Permission Behavior
-
-* **Anyone** can read posts and categories using `GET` requests.
-* **Authenticated users with JWT** can create, update, and delete through the API.
-
----
-
-## Tested API Flow
-
-The following flow has been manually tested through Swagger:
-
-* User registration
-* User login
-* Token refresh
-* User profile access
-* Categories CRUD
-* Posts CRUD
-
----
-
-## Future Improvements
-
-Possible improvements for this project:
-
-* Restrict update/delete so only the **post author** can modify their own posts
-* Add pagination for API responses
-* Add search and filtering
-* Add frontend forms connected directly to JWT-protected APIs
-* Add automated tests
-
----
-
-## Requirements
-
-The project dependencies are stored in:
-
-```bash
-requirements.txt
-```
-
-Install them with:
-
-```bash
-pip install -r requirements.txt
+# Re-fetch with latest results
+POST /api/sources/searches/1/refetch/
 ```
 
 ---

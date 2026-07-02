@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiExample
 from .serializers import RegisterSerializer, UserSerializer
 
 User = get_user_model()
@@ -10,7 +10,6 @@ User = get_user_model()
     tags=["Accounts"],
     summary="Register a new user",
     description="Create a new user account. Returns the username and email of the created user.",
-    operation_id="accounts_register",
     examples=[
         OpenApiExample(
             "Register request",
@@ -31,7 +30,6 @@ User = get_user_model()
     ],
 )
 class RegisterView(generics.CreateAPIView):
-    #work
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
@@ -41,7 +39,6 @@ class RegisterView(generics.CreateAPIView):
     tags=["Accounts"],
     summary="Get current user profile",
     description="Returns the profile of the currently authenticated user.",
-    operation_id="accounts_profile",
     examples=[
         OpenApiExample(
             "Profile response",
